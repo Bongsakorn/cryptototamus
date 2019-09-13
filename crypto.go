@@ -1,51 +1,97 @@
 package cryptototamus
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/md5"
+	"bytes"
 	"crypto/rand"
-	"encoding/hex"
-	"io"
+	b64 "encoding/base64"
+	"encoding/gob"
+	"fmt"
+
+	"github.com/aws/aws-sdk-go/service/kms"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
-func createHash(key string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(key))
-	return hex.EncodeToString(hasher.Sum(nil))
+const (
+	keyLength   = 32
+	nonceLength = 24
+)
+
+type payload struct {
+	Key     []byte
+	Nonce   *[nonceLength]byte
+	Message []byte
 }
 
 // Encrypt TODO
-func Encrypt(data []byte, passphrase string) ([]byte, error) {
-	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return []byte{}, err
+func Encrypt(kmsClient *kms.KMS, kmsKeyName string, plaintext []byte) (string, error) {
+	// Generate data key
+
+	//provide either the key's arn OR its alias, as shown below:
+	//keyId := "arn:aws:kms:us-east-1:779993255822:key/bb1a147c-8600-4558-910d-8b841c8f7493"
+	keyId := "alias/" + kmsKeyName
+	keySpec := "AES_128"
+	dataKeyInput := kms.GenerateDataKeyInput{KeyId: &keyId, KeySpec: &keySpec}
+
+	dataKeyOutput, err := kmsClient.GenerateDataKey(&dataKeyInput)
+	if err == nil { // dataKeyOutput is now filled
+		fmt.Println(dataKeyOutput)
+	} else {
+		fmt.Println("error: ", err)
 	}
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		return []byte{}, err
+
+	// Initialize payload
+	p := &payload{
+		Key:   dataKeyOutput.CiphertextBlob,
+		Nonce: &[nonceLength]byte{},
 	}
-	ciphertext := gcm.Seal(nonce, nonce, data, nil)
-	return ciphertext, nil
+
+	// Set nonce
+	if _, err = rand.Read(p.Nonce[:]); err != nil {
+		return "", err
+	}
+
+	// Create key
+	key := &[keyLength]byte{}
+	copy(key[:], dataKeyOutput.Plaintext)
+
+	// Encrypt message
+	p.Message = secretbox.Seal(p.Message, plaintext, p.Nonce, key)
+
+	buf := &bytes.Buffer{}
+	if err := gob.NewEncoder(buf).Encode(p); err != nil {
+		return "", err
+	}
+
+	return b64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
 // Decrypt TODO
-func Decrypt(data []byte, passphrase string) ([]byte, error) {
-	key := []byte(createHash(passphrase))
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return []byte{}, err
+func Decrypt(kmsClient *kms.KMS, encrypted string) ([]byte, error) {
+	// Decode ciphertext with gob
+	var p payload
+	decoded, _ := b64.StdEncoding.DecodeString(encrypted)
+	gob.NewDecoder(bytes.NewReader(decoded)).Decode(&p)
+
+	//Decrypt a ciphertext that was previously encrypted.
+	//Note that we dont actually specify the key name.
+	//I guess the ciphertext already encodes it?
+	dataKeyOutput, err := kmsClient.Decrypt(&kms.DecryptInput{
+		CiphertextBlob: p.Key,
+	})
+	if err == nil { // dataKeyOutput is now filled
+		fmt.Println(dataKeyOutput)
+	} else {
+		fmt.Println("error: ", err)
 	}
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return []byte{}, err
-	}
-	nonceSize := gcm.NonceSize()
-	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return []byte{}, err
+
+	key := &[keyLength]byte{}
+	copy(key[:], dataKeyOutput.Plaintext)
+
+	// Decrypt message
+	var plaintext []byte
+	plaintext, ok := secretbox.Open(plaintext, p.Message, p.Nonce, key)
+	if !ok {
+		return nil, fmt.Errorf("Failed to open secretbox")
 	}
 	return plaintext, nil
 }

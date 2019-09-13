@@ -1,9 +1,9 @@
 # Crytototamus
-Encrypt your message with passphrase
+Sample encrypt and decrypt your message with AWS KMS
 
 ### Install
 ```
-go get gopkg.in/Bongsakorn/cryptototamus.v1
+go get gopkg.in/Bongsakorn/cryptototamus.v2
 ```
 
 ### Example
@@ -14,23 +14,37 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	crypt "gopkg.in/Bongsakorn/cryptototamus.v1"
+	crypt "gopkg.in/Bongsakorn/cryptototamus.v2"
 )
 
 func main() {
-	ciphertext, err := crypt.Encrypt([]byte("Hello World"), "password")
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	fmt.Printf("Encrypted: %s\n", hex.EncodeToString(ciphertext))
+    keyName := "LogginKey" // insert your key here
+    inputMessage := "Hello World" // message would like to encrypt
+    
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		// Specify profile to load for the session's config
+		Profile: "your_profile",
 
-	plaintext, err := crypt.Decrypt(ciphertext, "password")
+		// Provide SDK Config options, such as Region.
+		Config: aws.Config{
+			Region: aws.String("ap-southeast-1"),
+		},
+	}))
+	kmsClient := kms.New(sess, aws.NewConfig())
+
+	// Encrypt plaintext
+	encrypted, err := Encrypt(kmsClient, keyName, []byte(inputMessage))
 	if err != nil {
-		fmt.Println(err.Error())
+		panic(err)
 	}
-	fmt.Printf("Decrypted: %s\n", plaintext)
+	fmt.Println("Encrypted: ", encoded)
+
+	// Decrypt ciphertext
+	kmsClient = kms.New(sess, aws.NewConfig())
+	decrypted, err := Decrypt(kmsClient, encrypted)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Decrypted: ", string(decrypted))
 }
 ```
-
-### Credits
-[Nic Raboy](https://www.thepolyglotdeveloper.com/2018/02/encrypt-decrypt-data-golang-application-crypto-packages/)
