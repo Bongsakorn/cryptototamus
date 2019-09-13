@@ -8,28 +8,28 @@ go get gopkg.in/Bongsakorn/cryptototamus.v1
 
 ### Example
 ``` GO
-package cryptototamus
+package main
 
 import (
 	"encoding/hex"
 	"fmt"
+
+	crypt "gopkg.in/Bongsakorn/cryptototamus.v1"
 )
 
 func main() {
-	ciphertext, err := encrypt([]byte("Hello World"), "password")
+	ciphertext, err := crypt.Encrypt([]byte("Hello World"), "password")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-    fmt.Printf("Encrypted: %s\n", hex.EncodeToString(ciphertext))
-    
-	ciphertext, _ := hex.DecodeString(c)
-	plaintext, err := decrypt(ciphertext, "password")
+	fmt.Printf("Encrypted: %s\n", hex.EncodeToString(ciphertext))
+
+	plaintext, err := crypt.Decrypt(ciphertext, "password")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	fmt.Printf("Decrypted: %s\n", plaintext)
 }
-
 ```
 
 ### Credits
