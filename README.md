@@ -1,5 +1,4 @@
-### Crytototamus
-***
+# Crytototamus
 Encrypt your message with passphrase
 
 ### Install
@@ -38,6 +37,3 @@ func main() {
 ### Credits
 ---
 [Nic Raboy](https://www.thepolyglotdeveloper.com/2018/02/encrypt-decrypt-data-golang-application-crypto-packages/)
-
-
-
