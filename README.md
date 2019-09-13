@@ -2,13 +2,11 @@
 Encrypt your message with passphrase
 
 ### Install
----
 ```
-go get ...
+go get gopkg.in/Bongsakorn/cryptototamus.v1
 ```
 
 ### Example
----
 ``` GO
 package cryptototamus
 
@@ -35,5 +33,4 @@ func main() {
 ```
 
 ### Credits
----
 [Nic Raboy](https://www.thepolyglotdeveloper.com/2018/02/encrypt-decrypt-data-golang-application-crypto-packages/)
