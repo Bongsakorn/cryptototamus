@@ -1,6 +1,6 @@
-## Crytototamus
----
-encrypt your message with passphrase
+### Crytototamus
+***
+Encrypt your message with passphrase
 
 ### Install
 ---
