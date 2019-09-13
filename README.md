@@ -18,8 +18,8 @@ import (
 )
 
 func main() {
-    keyName := "LogginKey" // insert your key here
-    inputMessage := "Hello World" // message would like to encrypt
+	keyName := "LogginKey" // insert your key here
+	inputMessage := "Hello World" // message would like to encrypt
     
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		// Specify profile to load for the session's config
