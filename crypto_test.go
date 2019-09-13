@@ -9,7 +9,7 @@ import (
 )
 
 func TestEncrypt(t *testing.T) {
-	keyName := "LogginKey" // Please insert your key
+	keyName := "" // Please insert your key
 
 	inputMessage := "Hello World"
 	sess := session.Must(session.NewSessionWithOptions(session.Options{

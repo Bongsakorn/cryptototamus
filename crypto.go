@@ -36,7 +36,7 @@ func Encrypt(kmsClient *kms.KMS, kmsKeyName string, plaintext []byte) (string, e
 	if err == nil { // dataKeyOutput is now filled
 		fmt.Println(dataKeyOutput)
 	} else {
-		fmt.Println("error: ", err)
+		return "", err
 	}
 
 	// Initialize payload
@@ -81,7 +81,7 @@ func Decrypt(kmsClient *kms.KMS, encrypted string) ([]byte, error) {
 	if err == nil { // dataKeyOutput is now filled
 		fmt.Println(dataKeyOutput)
 	} else {
-		fmt.Println("error: ", err)
+		return nil, err
 	}
 
 	key := &[keyLength]byte{}

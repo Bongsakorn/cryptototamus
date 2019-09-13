@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Encrypted: ", encoded)
+	fmt.Println("Encrypted: ", encrypted)
 
 	// Decrypt ciphertext
 	kmsClient = kms.New(sess, aws.NewConfig())
