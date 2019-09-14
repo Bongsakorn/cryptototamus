@@ -34,7 +34,7 @@ func Encrypt(kmsClient *kms.KMS, kmsKeyName string, plaintext []byte) (string, e
 
 	dataKeyOutput, err := kmsClient.GenerateDataKey(&dataKeyInput)
 	if err == nil { // dataKeyOutput is now filled
-		fmt.Println(dataKeyOutput)
+		// fmt.Println(dataKeyOutput)
 	} else {
 		return "", err
 	}
@@ -79,7 +79,7 @@ func Decrypt(kmsClient *kms.KMS, encrypted string) ([]byte, error) {
 		CiphertextBlob: p.Key,
 	})
 	if err == nil { // dataKeyOutput is now filled
-		fmt.Println(dataKeyOutput)
+		// fmt.Println(dataKeyOutput)
 	} else {
 		return nil, err
 	}
